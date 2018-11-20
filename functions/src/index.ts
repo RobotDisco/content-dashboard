@@ -139,6 +139,29 @@ exports.getReplCohortData = functions.https.onRequest((req, res) => {
   });
 });
 
+function githubApiRequest(method, uri, queryData?) {
+  return rp({
+    method,
+    qs: {
+      ...(queryData || {}),
+      'client_id': functions.config().github.key,
+      'client_secret': functions.config().github.secret
+    }
+    headers: {
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  })
+}
+
+
+exports.isGitHubAdmin(githubId) = functions.https.onRequest((req, res) => {
+  return cors(req, res, () => {
+    req.method === 'GET' && req.query.githubId ?
+      githubApi('GET', `/user/${githubId}`);
+      : res.status(403).send('Forbidden!')
+  });
+});
+
 const findUpcomingClassesOrderedByAscendingDate = (cohort) =>
   Object.keys(cohort.classrooms)
     .map(key => cohort.classrooms[key])
@@ -169,7 +192,6 @@ exports.notifySlackChannel = functions.https.onRequest((req, res) => {
       })
       : res.status(403).send('Forbidden!'));
 });
-
 
 function replLogin(username, password) {
   return rp({
